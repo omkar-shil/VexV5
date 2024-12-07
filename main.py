@@ -11,7 +11,7 @@
 
 #region VEXcode Generated Robot Configuration
 from vex import *
-from vex import urandom
+import random
 # Brain should be defined by default
 brain=Brain()
 
@@ -36,9 +36,12 @@ wait(30, MSEC)
 # Make random actually random
 def initializeRandomSeed():
     wait(100, MSEC)
+    
     random = brain.battery.voltage(MV) + brain.battery.current(CurrentUnits.AMP) * 100 + brain.timer.system_high_res()
-    urandom.seed(int(random))
-      
+    seed = int(random)
+initializeRandomSeed()
+
+
 # Set random seed 
 initializeRandomSeed()
 
@@ -127,9 +130,10 @@ def autonomous():
     pass
 
 def driver_control():
-condition = 1
-while condition: 
-    if brain.battery.capacity() < 5:
-        brain.screen.print("LOW BATTERY")
+    
+    #low battery warning
+    while brain.battery.capacity() > 5:
+        if brain.battery.capacity() < 5:
+            brain.screen.print("LOW BATTERY")
     
     pass
