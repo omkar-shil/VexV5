@@ -1,6 +1,4 @@
 #include "main.h"
-#include "armcode.cpp"
-
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -38,12 +36,6 @@ ez::Drive chassis(
 const int slew_step = 5;  // How fast the motors ramp up
 int left_speed = 0;
 int right_speed = 0;
-float armlevel = rotation_sensor.get_position();
-float idlearm = 359.91_deg; // Degree of rotation when the arm is down and idle
-float loadarm = 49.92_deg; // Degree of rotation when the arm is to be loaded with a ring to score
-float scorearm = 241.62_deg; // Degree of rotation to score; the arm will go to this degree for both alliance and neutral wall stakes
-int armpos = 0; // Level of the arm stored in an int; 0 is idle, 1 is load, and 2 is scoring
-
 
 void drive_control() {
   double forward = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
@@ -71,34 +63,36 @@ void intake_control() {
   }
 }
 
+
+// Arm Control
+
 void armscore() {
-  // Changes the level of the arm; R2 increases and R2 decreases. The different levels are above
-  if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-      if (armpos == 0) { 
-          arm.move_absolute(loadarm);
-          armpos = 1;
-      } 
-      else if (armpos == 1) { 
-          arm.move_absolute(scorearm);
-          armpos = 2;
-      }
-      pros::delay(200); // Prevent multiple triggers
-  }
+    // Changes the level of the arm; R2 increases and R2 decreases. The different levels are above
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+        if (armpos == 0) { 
+            armpid.target_set(loadarm);
+            armpos = 1;
+        } 
+        else if (armpos == 1) { 
+          armpid.target_set(scorearm);
+            armpos = 2;
+        }
+        pros::delay(200); // Prevent multiple triggers
+    }
 
-  // Decrease arm level with R1
-  if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-      if (armpos == 2) { 
-          arm.move_absolute(loadarm);
-          armpos = 1;
-      } 
-      else if (armpos == 1) { 
-          arm.move_absolute(idlearm);
-          armpos = 0;
-      }
-      pros::delay(200); // Prevent multiple triggers
-  }
+    // Decrease arm level with R1
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+        if (armpos == 2) { 
+          armpid.target_set(loadarm);
+            armpos = 1;
+        } 
+        else if (armpos == 1) { 
+          armpid.target_set(idlearm);
+            armpos = 0;
+        }
+        pros::delay(200); // Prevent multiple triggers
+    }
 }
-
 
 void pneumatics_control() {
   // **Clamp Control**
@@ -119,7 +113,7 @@ void pneumatics_control() {
 void initialize() {
   // Print our branding over your terminal :D
   ez::ez_template_print();
-
+  arm.tare_position();
   pros::delay(500);  // Stop the user from doing anything while legacy ports configure
 
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
@@ -209,6 +203,7 @@ void autonomous() {
 
   /*
   Odometry and Pure Pursuit are not magic
+
   It is possible to get perfectly consistent results without tracking wheels,
   but it is also possible to have extremely inconsistent results without tracking wheels.
   When you don't use tracking wheels, you need to:
@@ -341,9 +336,9 @@ void opcontrol() {
     // Put more user control code here!
     drive_control();
     intake_control();
-    arm_control();
+    armscore();
     pneumatics_control();
-    arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    arm.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     intake.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
