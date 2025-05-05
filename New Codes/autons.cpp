@@ -1,8 +1,4 @@
-#include "autons.hpp"
-#include "EZ-Template/drive/drive.hpp"
-#include "EZ-Template/util.hpp"
 #include "main.h"
-#include "subsystems.hpp"
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -10,9 +6,110 @@
 /////
 
 // These are out of 127
-const int DRIVE_SPEED = 110;
-const int TURN_SPEED = 90;
-const int SWING_SPEED = 110;
+const int DRIVE_SPEED = 100;
+const int TURN_SPEED = 100;
+const int SWING_SPEED = 100;
+
+
+
+
+///
+// Calculate the offsets of your tracking wheels
+///
+void measure_offsets() {
+  // Number of times to test
+  int iterations = 10;
+
+  // Our final offsets
+  double l_offset = 0.0, r_offset = 0.0, b_offset = 0.0, f_offset = 0.0;
+
+  // Reset all trackers if they exist
+  if (chassis.odom_tracker_left != nullptr) chassis.odom_tracker_left->reset();
+  if (chassis.odom_tracker_right != nullptr) chassis.odom_tracker_right->reset();
+  if (chassis.odom_tracker_back != nullptr) chassis.odom_tracker_back->reset();
+  if (chassis.odom_tracker_front != nullptr) chassis.odom_tracker_front->reset();
+  
+  for (int i = 0; i < iterations; i++) {
+    // Reset pid targets and get ready for running an auton
+    chassis.pid_targets_reset();
+    chassis.drive_imu_reset();
+    chassis.drive_sensor_reset();
+    chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
+    chassis.odom_xyt_set(0_in, 0_in, 0_deg);
+    double imu_start = chassis.odom_theta_get();
+    double target = i % 2 == 0 ? 90 : 270;  // Switch the turn target every run from 270 to 90
+
+    // Turn to target at half power
+    chassis.pid_turn_set(target, 63, ez::raw);
+    chassis.pid_wait();
+    pros::delay(250);
+
+    // Calculate delta in angle
+    double t_delta = util::to_rad(fabs(util::wrap_angle(chassis.odom_theta_get() - imu_start)));
+
+    // Calculate delta in sensor values that exist
+    double l_delta = chassis.odom_tracker_left != nullptr ? chassis.odom_tracker_left->get() : 0.0;
+    double r_delta = chassis.odom_tracker_right != nullptr ? chassis.odom_tracker_right->get() : 0.0;
+    double b_delta = chassis.odom_tracker_back != nullptr ? chassis.odom_tracker_back->get() : 0.0;
+    double f_delta = chassis.odom_tracker_front != nullptr ? chassis.odom_tracker_front->get() : 0.0;
+
+    // Calculate the radius that the robot traveled
+    l_offset += l_delta / t_delta;
+    r_offset += r_delta / t_delta;
+    b_offset += b_delta / t_delta;
+    f_offset += f_delta / t_delta;
+  }
+
+  // Average all offsets
+  l_offset /= iterations;
+  r_offset /= iterations;
+  b_offset /= iterations;
+  f_offset /= iterations;
+
+  // Set new offsets to trackers that exist
+  if (chassis.odom_tracker_left != nullptr) chassis.odom_tracker_left->distance_to_center_set(l_offset);
+  if (chassis.odom_tracker_right != nullptr) chassis.odom_tracker_right->distance_to_center_set(r_offset);
+  if (chassis.odom_tracker_back != nullptr) chassis.odom_tracker_back->distance_to_center_set(b_offset);
+  if (chassis.odom_tracker_front != nullptr) chassis.odom_tracker_front->distance_to_center_set(f_offset);
+}
+
+// . . .
+// Make your own autonomous functions here!
+// . . .
+void eliminationred(){
+  chassis.pid_swing_set(ez::RIGHT_SWING,30_deg,100);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-85_in,127,true);
+  chassis.pid_wait();
+  clamp_piston.set_value(true);
+  chassis.pid_turn_set(90_deg,100);
+  chassis.pid_wait();
+  rollers.move(127);
+  intake.move(-110);
+  chassis.pid_drive_set(50_in,127,true);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(85_deg,100);
+  chassis.pid_wait();
+  chassis.pid_drive_set(50_in,127,true);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-25_in,127,true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(45_deg,100);
+  chassis.pid_wait();
+  chassis.pid_drive_set(25_in,127,true);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-25_in,127,true);
+  chassis.pid_turn_set(90_deg,100);
+  chassis.pid_drive_set(75_in,127,true);
+  chassis.pid_wait();
+}
+
+void test(){
+  chassis.pid_drive_set(1_in,127);
+  chassis.pid_wait();
+  chassis.pid_turn_set(360_deg,127);
+  chassis.pid_wait();
+}
 
 ///
 // Constants
@@ -70,55 +167,47 @@ void qualifyingblue(){
  chassis.pid_drive_set(-37.5_in, 66, true);
  chassis.pid_wait();
  chassis.pid_drive_set(-1.5_in, DRIVE_SPEED);
- clamp_piston.set(true);
+ clamp_piston.set_value(true);
  chassis.pid_wait();
  chassis.pid_turn_set(182_deg, TURN_SPEED, true);
  chassis.pid_wait();
  chassis.pid_drive_set(25_in, DRIVE_SPEED);
  chassis.pid_wait_quick();
- ringsecure();
+ //ringsecure();
  chassis.pid_turn_set(80_deg, TURN_SPEED);
  chassis.pid_wait_quick();
  chassis.pid_drive_set(14.25, 63);
  chassis.pid_wait();
- ringsecure();
+ //ringsecure();
  chassis.pid_drive_set(-5.25_in, DRIVE_SPEED, false);
  chassis.pid_wait();
  chassis.pid_turn_set(10_deg, TURN_SPEED, true);
  chassis.pid_wait();
  chassis.pid_drive_set(5.25_in, DRIVE_SPEED, false);
  chassis.pid_wait();
- ringsecure();
+ //ringsecure();
  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
  intake.move(0);
 }
-void bluenegative(){
-  chassis.pid_swing_set(ez::RIGHT_SWING, 45, DRIVE_SPEED);
+void bluenegative(){  
+  chassis.pid_drive_set(-24_in,115,true);
   chassis.pid_wait();
-  clamp_piston.set(true);
+  clamp_piston.set_value(true);
+  pros::delay(750);
+  chassis.pid_turn_set(-90_deg,90,true);
   chassis.pid_wait();
-  intake.move(127);
-  chassis.pid_turn_set(-45_deg, TURN_SPEED, true);
+  rollers.move(127);
+  intake.move(-110);
+  chassis.pid_drive_set(24_in,127,true);
   chassis.pid_wait();
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
-  chassis.pid_wait_quick();
-  chassis.pid_drive_set(4_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(-8_in, DRIVE_SPEED, true);
-  chassis.pid_wait_quick();
-  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
-  chassis.pid_drive_set(36_in, DRIVE_SPEED, false);
-  chassis.pid_wait();
+  pros::delay(500);
+  chassis.pid_turn_set(-80_deg,90,true);
 }
+
 void bluepositive(){
   chassis.pid_drive_set(-32_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  clamp_piston.set(true);
+  clamp_piston.set_value(true);
   chassis.pid_wait();
   intake.move(127);
   chassis.pid_turn_set(100_deg, TURN_SPEED, true);
@@ -129,50 +218,5 @@ void bluepositive(){
   chassis.pid_wait();
   chassis.pid_drive_set(53.5_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  clamp_piston.set(false);
-}
-void skills(){
-  chassis.pid_drive_set(-6_in, 63, false);
-  chassis.pid_wait();
-  intake.move(127);
-  chassis.pid_wait();
-  chassis.pid_wait();
-  chassis.pid_wait_quick();
-  intake.move(0);
-  chassis.pid_drive_set(18_in, 63, false);
-  chassis.pid_wait_quick();
-  chassis.pid_turn_set(-90_deg, TURN_SPEED, false);
-  chassis.pid_wait_quick();
-  chassis.pid_drive_set(-24_in, DRIVE_SPEED, true);
-  chassis.pid_wait_quick();
-  clamp_piston.set(true);
-  chassis.pid_wait_quick();
-  chassis.pid_drive_set(-5_in, 63, false);
-  chassis.pid_wait();
-  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  intake.move(127);
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(36_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(-135_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(-24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  clamp_piston.set(false);
+  clamp_piston.set_value(false);
 }
