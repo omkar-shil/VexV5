@@ -148,6 +148,8 @@ void test(){
 }
 
 void qualifyingblue(){
+ chassis.pid_turn_set(360_deg, TURN_SPEED, true);
+ chassis.pid_wait_quick();
  chassis.pid_drive_set(24_in, 76, true);
  chassis.pid_wait();
  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
@@ -168,25 +170,24 @@ void qualifyingblue(){
  chassis.pid_drive_set(-1.5_in, DRIVE_SPEED);
  clamp_piston.set(true);
  chassis.pid_wait();
+ rollers.move(-127);
  chassis.pid_turn_set(182_deg, TURN_SPEED, true);
  chassis.pid_wait();
  chassis.pid_drive_set(25_in, DRIVE_SPEED);
  chassis.pid_wait_quick();
- ringsecure();
  chassis.pid_turn_set(80_deg, TURN_SPEED);
  chassis.pid_wait_quick();
  chassis.pid_drive_set(14.25, 63);
  chassis.pid_wait();
- ringsecure();
  chassis.pid_drive_set(-5.25_in, DRIVE_SPEED, false);
  chassis.pid_wait();
  chassis.pid_turn_set(10_deg, TURN_SPEED, true);
  chassis.pid_wait();
  chassis.pid_drive_set(5.25_in, DRIVE_SPEED, false);
  chassis.pid_wait();
- ringsecure();
  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
  intake.move(0);
+ rollers.move(0);
 }
 void bluenegative(){  
   chassis.pid_drive_set(-24_in,115,true);
