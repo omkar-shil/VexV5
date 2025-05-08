@@ -147,8 +147,8 @@ void test(){
   chassis.pid_wait();
 }
 
+
 void qualifyingblue(){
- void qualifyingblue(){
   // Starts 24 away from the alliance stake on the negative side, the IMU starts on the foam tile line with the outer set of wheels on the border of the right most tile. Rollers forwards 
  chassis.pid_turn_set(360_deg, TURN_SPEED, true);
  chassis.pid_wait_quick();
