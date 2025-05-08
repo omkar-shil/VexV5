@@ -148,6 +148,8 @@ void test(){
 }
 
 void qualifyingblue(){
+ void qualifyingblue(){
+  // Starts 24 away from the alliance stake on the negative side, the IMU starts on the foam tile line with the outer set of wheels on the border of the right most tile. Rollers forwards 
  chassis.pid_turn_set(360_deg, TURN_SPEED, true);
  chassis.pid_wait_quick();
  chassis.pid_drive_set(24_in, 76, true);
@@ -161,6 +163,7 @@ void qualifyingblue(){
  chassis.pid_wait();
  chassis.pid_wait_quick();
  chassis.pid_wait();
+ intake.move(0);
  chassis.pid_drive_set(6_in, DRIVE_SPEED, true);
  chassis.pid_wait_quick();
  chassis.pid_turn_set(-53_deg, TURN_SPEED, true);
@@ -170,6 +173,7 @@ void qualifyingblue(){
  chassis.pid_drive_set(-1.5_in, DRIVE_SPEED);
  clamp_piston.set(true);
  chassis.pid_wait();
+ intake.move(-79);
  rollers.move(-127);
  chassis.pid_turn_set(182_deg, TURN_SPEED, true);
  chassis.pid_wait();
@@ -186,6 +190,7 @@ void qualifyingblue(){
  chassis.pid_drive_set(5.25_in, DRIVE_SPEED, false);
  chassis.pid_wait();
  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
+ pros::delay(500);
  intake.move(0);
  rollers.move(0);
 }
@@ -205,20 +210,39 @@ void bluenegative(){
 }
 
 void bluepositive(){
-  chassis.pid_drive_set(-32_in, DRIVE_SPEED, true);
+// Blue positive starts 32 inches away from the positive blue mobile goal in a straight line. Clamp forwards
+  chassis.pid_drive_set(-20.5_in, 76, true);
+  chassis.pid_wait_quick();
+  clamp_piston.set(true);
+  intake.move(-100);
+  pros::delay(500);
+  chassis.pid_drive_set(-5_in, 66, true);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(90_deg, 76, true);
+  clamp_piston.set(false);
+  chassis.pid_wait_quick();
+  rollers.move(-127);
+  chassis.pid_drive_set(25_in, 67, true);
+  chassis.pid_wait_quick();
+  intake.move(0);
+  chassis.pid_turn_set(-360_deg, 67, true);
   chassis.pid_wait();
-  clamp_piston.set_value(true);
+  chassis.pid_drive_set(-20_in, 50, true);
+  chassis.pid_wait_quick();
+  clamp_piston.set(true);
+  intake.move(-100);
+  pros::delay(750);
+  intake.move(0);
+  rollers.move(127);
+  chassis.pid_drive_set(44_in, DRIVE_SPEED, true);
+  chassis.pid_wait_quick();
+  chassis.pid_turn_set(-135_deg, 67, true);
+  chassis.pid_wait_quick();
+  chassis.pid_drive_set(-14.5_in, 67, true);
   chassis.pid_wait();
-  intake.move(127);
-  chassis.pid_turn_set(100_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(26.57_deg, TURN_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_drive_set(53.5_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  clamp_piston.set_value(false);
+  clamp_piston.set(false);
+  chassis.pid_drive_set(60_in, DRIVE_SPEED, true);
+  chassis.pid_wait_quick();
 }
 void skills(){
   chassis.pid_drive_set(-12_in, 63, false);
